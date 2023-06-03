@@ -143,6 +143,9 @@ def insert_expenses(email):
         if choice.upper() != 'Y':
             break
 
+
+
+
 # Function to show table
 def show_financial_info(email):
     print(Fore.GREEN + font.renderText('Show Financial Information') + Style.RESET_ALL)
@@ -194,6 +197,20 @@ def show_financial_info(email):
     print('Financial Information')
     print(tabulate(financial_data, headers=headers, tablefmt="fancy_grid"))
 
+
+def delete_profile(user_data):
+    print(Fore.GREEN + font.renderText('Delete Profile') + Style.RESET_ALL)
+    confirmation = input('Are you sure you want to delete your profile? (Y/N): ')
+
+    if confirmation.upper() == 'Y':
+        # Delete the user's profile document
+        users_collection.document(user_data['email']).delete()
+        print('Profile deleted.')
+        return True
+    else:
+        print('Deletion canceled.')
+        return False 
+
 # App layout
 def financial_app():
     print(Fore.RED + font.renderText('Welcome to Financial Firestore App') + Style.RESET_ALL)
@@ -218,6 +235,7 @@ def financial_app():
                     print(Fore.GREEN + '2. Insert Income' + Style.RESET_ALL)
                     print(Fore.GREEN + '3. Insert Expenses' + Style.RESET_ALL)
                     print(Fore.GREEN + '4. Show Financial Information' + Style.RESET_ALL)
+                    print(Fore.GREEN + '5. Delete Profile' + Style.RESET_ALL)
                     print(Fore.GREEN + '5. Log Out' + Style.RESET_ALL)
 
                     inner_choice = input(Fore.CYAN + 'Enter your choice: ' + Style.RESET_ALL)
@@ -230,7 +248,12 @@ def financial_app():
                         insert_expenses(user_data['email'])
                     elif inner_choice == '4':
                         show_financial_info(user_data['email'])
-                    elif inner_choice == '5':
+                    if inner_choice == '5':
+                        if delete_profile(user_data):
+                            print('Profile deleted. Logged out.')
+                            user_data = None
+                            break
+                    elif inner_choice == '6':
                         print('Logged out.')
                         user_data = None
                         break
