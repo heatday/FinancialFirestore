@@ -236,7 +236,7 @@ def financial_app():
                     print(Fore.GREEN + '3. Insert Expenses' + Style.RESET_ALL)
                     print(Fore.GREEN + '4. Show Financial Information' + Style.RESET_ALL)
                     print(Fore.GREEN + '5. Delete Profile' + Style.RESET_ALL)
-                    print(Fore.GREEN + '5. Log Out' + Style.RESET_ALL)
+                    print(Fore.GREEN + '6. Log Out' + Style.RESET_ALL)
 
                     inner_choice = input(Fore.CYAN + 'Enter your choice: ' + Style.RESET_ALL)
 
