@@ -1,10 +1,10 @@
 # Overview
 
-I have created this financial firebase app to save in database inforamtion using CRUD to further my learning and enhance my skills in this NoSql Database along with pythong language. This project allows users to register, login, update log out and delete  track their income and expenses. It provides functionality to add income and expense amounts, calculate total average income and average expense, show financial results, reset tracking, and save, load data using shared preferences.
+I have created this financial Firebase app to save in database information using CRUD to further my learning and enhance my skills in this NoSQL Database along with Python language. This project allows users to register, login, update log out and delete the user, track their income and expenses. It provides functionality to add income and expense amounts, calculate total average income and average expense, show financial information as well as user information in database.
 
 
 
-[Software Demo Video](https://www.youtube.com/watch?v=CnA8KUcLOXY)
+[Software Demo Video](https://www.youtube.com/)
 
 # Development Environment
 
