@@ -118,12 +118,6 @@ def update_profile(user_data):
     return user_data
 
 
-
-
-
-
-
-
 # Function to insert income
 def insert_income(email):
     while True:
