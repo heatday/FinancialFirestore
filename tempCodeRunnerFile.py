@@ -54,7 +54,7 @@ def authenticate_user():
         print('User not found')
     return None
 
-# Function to update user profile
+
 def update_profile(user_data):
     print(Fore.GREEN + font.renderText('Update Profile') + Style.RESET_ALL)
 
@@ -68,6 +68,41 @@ def update_profile(user_data):
     update_email = input('Update Email? (Y/N): ')
     if update_email.upper() == 'Y':
         new_email = input('New Email: ')
+        # Check if the new email exists in the users collection
+        existing_user = users_collection.document(new_email).get()
+        if existing_user.exists:
+            print('Email already exists. Please choose a different email.')
+            return user_data
+
+        # Get the reference to the current user document
+        current_user_doc = users_collection.document(user_data['email'])
+
+        # Get the income and expenses collections of the current user
+        current_income_collection = current_user_doc.collection('income')
+        current_expenses_collection = current_user_doc.collection('expenses')
+
+        # Get the reference to the new user document
+        new_user_doc = users_collection.document(new_email)
+
+        # Get the income and expenses collections of the new user
+        new_income_collection = new_user_doc.collection('income')
+        new_expenses_collection = new_user_doc.collection('expenses')
+
+        # Retrieve the income documents from the current user and update the email field
+        for income_doc in current_income_collection.stream():
+            income_data = income_doc.to_dict()
+            income_data['email'] = new_email
+            new_income_collection.add(income_data)
+
+        # Retrieve the expenses documents from the current user and update the email field
+        for expenses_doc in current_expenses_collection.stream():
+            expenses_data = expenses_doc.to_dict()
+            expenses_data['email'] = new_email
+            new_expenses_collection.add(expenses_data)
+
+        # Delete the current user document
+        current_user_doc.delete()
+
         user_data['email'] = new_email
 
     # Check if the user wants to update the password
@@ -75,11 +110,18 @@ def update_profile(user_data):
     if update_password.upper() == 'Y':
         new_password = input('New Password: ')
         user_data['password'] = new_password
-    
-     # Update the user data in Firestore using the email 
+
+    # Update the existing document with the updated profile information
     users_collection.document(user_data['email']).set(user_data)
     print('Profile updated.')
+
     return user_data
+
+
+
+
+
+
 
 
 # Function to insert income
@@ -122,6 +164,9 @@ def insert_expenses(email):
         if choice.upper() != 'Y':
             break
 
+
+
+
 # Function to show table
 def show_financial_info(email):
     print(Fore.GREEN + font.renderText('Show Financial Information') + Style.RESET_ALL)
@@ -150,7 +195,7 @@ def show_financial_info(email):
     average_income = total_income / len(income_docs) if len(income_docs) > 0 else 0
     average_expenses = total_expenses / len(expenses_docs) if len(expenses_docs) > 0 else 0
     net_income = total_income - total_expenses
-    
+
     # table structure
     financial_data.append(['Total Income', 'Total Expenses', '', ''])
     financial_data.append([total_income, total_expenses, '', ''])
@@ -172,6 +217,20 @@ def show_financial_info(email):
     headers = ["Income", "Expenses", "Income Description", "Expenses Description"]
     print('Financial Information')
     print(tabulate(financial_data, headers=headers, tablefmt="fancy_grid"))
+
+
+def delete_profile(user_data):
+    print(Fore.GREEN + font.renderText('Delete Profile') + Style.RESET_ALL)
+    confirmation = input('Are you sure you want to delete your profile? (Y/N): ')
+
+    if confirmation.upper() == 'Y':
+        # Delete the user's profile document
+        users_collection.document(user_data['email']).delete()
+        print('Profile deleted.')
+        return True
+    else:
+        print('Deletion canceled.')
+        return False 
 
 # App layout
 def financial_app():
@@ -197,7 +256,8 @@ def financial_app():
                     print(Fore.GREEN + '2. Insert Income' + Style.RESET_ALL)
                     print(Fore.GREEN + '3. Insert Expenses' + Style.RESET_ALL)
                     print(Fore.GREEN + '4. Show Financial Information' + Style.RESET_ALL)
-                    print(Fore.GREEN + '5. Log Out' + Style.RESET_ALL)
+                    print(Fore.GREEN + '5. Delete Profile' + Style.RESET_ALL)
+                    print(Fore.GREEN + '6. Log Out' + Style.RESET_ALL)
 
                     inner_choice = input(Fore.CYAN + 'Enter your choice: ' + Style.RESET_ALL)
 
@@ -210,6 +270,11 @@ def financial_app():
                     elif inner_choice == '4':
                         show_financial_info(user_data['email'])
                     elif inner_choice == '5':
+                        if delete_profile(user_data):
+                            print('Profile deleted. Logged out.')
+                            user_data = None
+                            break
+                    elif inner_choice == '6':
                         print('Logged out.')
                         user_data = None
                         break

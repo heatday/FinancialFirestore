@@ -55,7 +55,6 @@ def authenticate_user():
     return None
 
 
-# Function to update user profile
 def update_profile(user_data):
     print(Fore.GREEN + font.renderText('Update Profile') + Style.RESET_ALL)
 
@@ -69,6 +68,41 @@ def update_profile(user_data):
     update_email = input('Update Email? (Y/N): ')
     if update_email.upper() == 'Y':
         new_email = input('New Email: ')
+        # Check if the new email exists in the users collection
+        existing_user = users_collection.document(new_email).get()
+        if existing_user.exists:
+            print('Email already exists. Please choose a different email.')
+            return user_data
+
+        # Get the reference to the current user document
+        current_user_doc = users_collection.document(user_data['email'])
+
+        # Get the income and expenses collections of the current user
+        current_income_collection = current_user_doc.collection('income')
+        current_expenses_collection = current_user_doc.collection('expenses')
+
+        # Get the reference to the new user document
+        new_user_doc = users_collection.document(new_email)
+
+        # Get the income and expenses collections of the new user
+        new_income_collection = new_user_doc.collection('income')
+        new_expenses_collection = new_user_doc.collection('expenses')
+
+        # Retrieve the income documents from the current user and update the email field
+        for income_doc in current_income_collection.stream():
+            income_data = income_doc.to_dict()
+            income_data['email'] = new_email
+            new_income_collection.add(income_data)
+
+        # Retrieve the expenses documents from the current user and update the email field
+        for expenses_doc in current_expenses_collection.stream():
+            expenses_data = expenses_doc.to_dict()
+            expenses_data['email'] = new_email
+            new_expenses_collection.add(expenses_data)
+
+        # Delete the current user document
+        current_user_doc.delete()
+
         user_data['email'] = new_email
 
     # Check if the user wants to update the password
@@ -77,22 +111,9 @@ def update_profile(user_data):
         new_password = input('New Password: ')
         user_data['password'] = new_password
 
-    # Check if the email is being updated
-    if update_email.upper() == 'Y':
-        # Create a new document with the new email
-        users_collection.document(new_email).set(user_data)
-        print('Profile updated.')
-
-        # Delete the old document
-        users_collection.document(user_data['email']).delete()
-        print('Old profile deleted.')
-
-        # Update user_data with the new email
-        user_data['email'] = new_email
-    else:
-        # Update the existing document with the updated profile information
-        users_collection.document(user_data['email']).set(user_data)
-        print('Profile updated.')
+    # Update the existing document with the updated profile information
+    users_collection.document(user_data['email']).set(user_data)
+    print('Profile updated.')
 
     return user_data
 
@@ -248,7 +269,7 @@ def financial_app():
                         insert_expenses(user_data['email'])
                     elif inner_choice == '4':
                         show_financial_info(user_data['email'])
-                    if inner_choice == '5':
+                    elif inner_choice == '5':
                         if delete_profile(user_data):
                             print('Profile deleted. Logged out.')
                             user_data = None
